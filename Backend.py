@@ -4,7 +4,6 @@ import json
 import logging
 import google.generativeai as genai
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from sklearn.feature_extraction.text import TfidfVectorizer
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
