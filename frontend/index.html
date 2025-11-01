@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCQify - Upload your notes. Generate quizzes. Learn playfully.</title>
+    <title>MCQify - AI Quiz Generator</title>
     <style>
         * {
             margin: 0;
@@ -969,7 +969,6 @@
     </style>
 </head>
 <body>
-    <!-- Hero Section -->
     <section class="hero">
         <div class="floating-shapes">
             <svg class="shape" width="100" height="100" viewBox="0 0 100 100">
@@ -992,7 +991,6 @@
         <div class="scroll-indicator"></div>
     </section>
 
-    <!-- Feature Section 1 -->
     <section class="section">
         <div class="section-content">
             <div class="section-text">
@@ -1019,7 +1017,6 @@
         </div>
     </section>
 
-    <!-- Feature Section 2 -->
     <section class="section">
         <div class="section-content">
             <div class="section-visual">
@@ -1049,7 +1046,6 @@
         </div>
     </section>
 
-    <!-- Feature Section 3 -->
     <section class="section">
         <div class="section-content">
             <div class="section-text">
@@ -1074,9 +1070,7 @@
         </div>
     </section>
 
-    <!-- Generator Section -->
-    <section class="generator-section">
-        <div class="generator-container">
+    <section class="generator-section" id="generator"> <div class="generator-container">
             <h2>Generate Your Quiz</h2>
             <div class="upload-box" id="uploadBox">
                 <input type="file" id="fileInput" accept=".pdf">
@@ -1097,7 +1091,6 @@
         </div>
     </section>
 
-    <!-- Quiz Section -->
     <section class="quiz-section" id="quizSection">
         <div class="quiz-progress">
             <div class="progress-bar">
@@ -1108,7 +1101,6 @@
         <div class="quiz-container" id="quizContainer"></div>
     </section>
 
-    <!-- Results Section -->
     <section class="results-section" id="resultsSection">
         <div class="results-container">
             <div class="trophy">🏆</div>
@@ -1136,7 +1128,7 @@
 
         sections.forEach(section => observer.observe(section));
 
-        // File upload handling
+        // --- All our JavaScript logic goes here ---
         const uploadBox = document.getElementById('uploadBox');
         const fileInput = document.getElementById('fileInput');
         const generateBtn = document.getElementById('generateBtn');
@@ -1152,6 +1144,7 @@
         let currentScore = 0;
         let totalQuestions = 0;
         let answeredQuestions = 0;
+        let currentQuizData = []; 
 
         uploadBox.addEventListener('click', () => fileInput.click());
 
@@ -1183,61 +1176,8 @@
             }
         });
 
-        // Sample quiz data
-        const sampleQuiz = [
-            {
-                question: "What is the primary function of the mitochondria in a cell?",
-                options: [
-                    "Protein synthesis",
-                    "Energy production",
-                    "DNA replication",
-                    "Cell division"
-                ],
-                correct: 1
-            },
-            {
-                question: "Which programming language is known for its use in web development?",
-                options: [
-                    "C++",
-                    "Java",
-                    "JavaScript",
-                    "Python"
-                ],
-                correct: 2
-            },
-            {
-                question: "What is the capital of France?",
-                options: [
-                    "London",
-                    "Berlin",
-                    "Madrid",
-                    "Paris"
-                ],
-                correct: 3
-            },
-            {
-                question: "Which planet is known as the Red Planet?",
-                options: [
-                    "Venus",
-                    "Mars",
-                    "Jupiter",
-                    "Saturn"
-                ],
-                correct: 1
-            },
-            {
-                question: "What does HTML stand for?",
-                options: [
-                    "Hyper Text Markup Language",
-                    "High Tech Modern Language",
-                    "Home Tool Markup Language",
-                    "Hyperlinks and Text Markup Language"
-                ],
-                correct: 0
-            }
-        ];
-
-        generateBtn.addEventListener('click', () => {
+       
+        generateBtn.addEventListener('click', async () => {
             if (!uploadedFile) {
                 alert('Please upload a PDF file first! 📄');
                 return;
@@ -1252,47 +1192,85 @@
             loading.classList.add('active');
             generateBtn.disabled = true;
 
-            setTimeout(() => {
-                loading.classList.remove('active');
-                generateBtn.disabled = false;
-                startQuiz(numQuestions);
-            }, 2000);
+            // --- REAL API CALL ---
+            const formData = new FormData();
+            formData.append('file', uploadedFile);
+            formData.append('num_questions', numQuestions);
+
+            try {
+                // Use your deployed Render URL
+                const response = await fetch('https://mcqify.onrender.com/generate_mcq', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.detail || 'Something went wrong on the server.');
+                }
+
+                const data = await response.json();
+                
+                if (data.mcqs && data.mcqs.length > 0) {
+                    // Save the data and start the quiz
+                    currentQuizData = data.mcqs;
+                    startQuiz(currentQuizData);
+                } else {
+                    throw new Error("The API returned an empty or invalid quiz.");
+                }
+
+            } catch (err) {
+                alert('Error generating quiz: ' + err.message);
+                resetQuizUI(); // Go back to upload state
+            }
         });
 
-        function startQuiz(numQuestions) {
+        // --- 2. MODIFIED: startQuiz function ---
+        function startQuiz(mcqs) {
             currentScore = 0;
             answeredQuestions = 0;
-            totalQuestions = Math.min(numQuestions, sampleQuiz.length);
+            totalQuestions = mcqs.length;
             quizContainer.innerHTML = '';
+            
+            // Hide loading, show quiz
+            loading.classList.remove('active');
+            generateBtn.disabled = false;
             quizSection.classList.add('active');
+            
+            // Set initial progress
             progressFill.style.width = '0%';
             progressText.textContent = `Question 0 of ${totalQuestions}`;
             quizSection.scrollIntoView({ behavior: 'smooth' });
 
-            for (let i = 0; i < totalQuestions; i++) {
-                setTimeout(() => {
-                    createQuizCard(sampleQuiz[i], i);
-                }, i * 300);
-            }
+            // Create all quiz cards
+            mcqs.forEach((mcq, index) => {
+                createQuizCard(mcq, index);
+            });
         }
 
-        function createQuizCard(question, index) {
+        // --- 3. MODIFIED: createQuizCard function ---
+        function createQuizCard(mcq, index) {
             const card = document.createElement('div');
             card.className = 'quiz-card';
             card.style.animationDelay = `${index * 0.1}s`;
 
             const questionText = document.createElement('div');
             questionText.className = 'question-text';
-            questionText.textContent = `${index + 1}. ${question.question}`;
+            questionText.textContent = `${index + 1}. ${mcq.question}`;
 
             const options = document.createElement('div');
             options.className = 'options';
 
-            question.options.forEach((option, optIndex) => {
+            // Use the real data from the API
+            mcq.options.forEach((option) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.textContent = option;
-                btn.onclick = () => checkAnswer(btn, optIndex, question.correct, options);
+                
+                // --- MODIFIED CLICK HANDLER ---
+                // Pass the button, the correct answer *text*, and the container
+                btn.onclick = () => checkAnswer(btn, mcq.correct_answer, options);
+                
                 options.appendChild(btn);
             });
 
@@ -1301,27 +1279,34 @@
             quizContainer.appendChild(card);
         }
 
-        function checkAnswer(btn, selected, correct, optionsContainer) {
+        // --- 4. MODIFIED: checkAnswer function ---
+        function checkAnswer(selectedButton, correctAnswerText, optionsContainer) {
             const allButtons = optionsContainer.querySelectorAll('.option-btn');
+            const selectedAnswerText = selectedButton.textContent;
             
-            allButtons.forEach((button, index) => {
+            // Disable all buttons for this card
+            allButtons.forEach(button => {
                 button.classList.add('disabled');
-                if (index === correct) {
+                // Highlight the correct answer
+                if (button.textContent === correctAnswerText) {
                     button.classList.add('correct');
                 }
             });
 
-            if (selected === correct) {
-                btn.classList.add('correct');
+            if (selectedAnswerText === correctAnswerText) {
+                // User was right, add correct class (already added, but good for clarity)
+                selectedButton.classList.add('correct');
                 currentScore++;
-                createConfetti(btn);
+                createConfetti(selectedButton);
             } else {
-                btn.classList.add('incorrect');
+                // User was wrong, add incorrect class
+                selectedButton.classList.add('incorrect');
             }
 
             answeredQuestions++;
             updateProgress();
 
+            // Check if quiz is finished
             setTimeout(() => {
                 if (answeredQuestions === totalQuestions) {
                     setTimeout(showResults, 1000);
@@ -1358,6 +1343,7 @@
             scoreDisplay.textContent = `${currentScore}/${totalQuestions}`;
             resultsSection.scrollIntoView({ behavior: 'smooth' });
             
+            // Perfect score confetti rain
             if (currentScore === totalQuestions) {
                 for (let i = 0; i < 100; i++) {
                     setTimeout(() => {
@@ -1373,6 +1359,7 @@
             }
         }
 
+        // --- 5. MODIFIED: resetQuiz function ---
         function resetQuiz() {
             uploadedFile = null;
             fileInput.value = '';
@@ -1380,7 +1367,23 @@
             uploadBox.style.borderColor = '#667eea';
             quizSection.classList.remove('active');
             resultsSection.classList.remove('active');
-            document.querySelector('.generator-section').scrollIntoView({ behavior: 'smooth' });
+            loading.classList.remove('active');
+            generateBtn.disabled = false;
+            
+            // Scroll back to the generator section
+            document.getElementById('generator').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // This is a new helper function
+        function resetQuizUI() {
+             uploadedFile = null;
+            fileInput.value = '';
+            uploadBox.querySelector('p').textContent = '📤 Drop your PDF here or click to upload';
+            uploadBox.style.borderColor = '#667eea';
+            quizSection.classList.remove('active');
+            resultsSection.classList.remove('active');
+            loading.classList.remove('active');
+            generateBtn.disabled = false;
         }
 
         function shareResults() {
@@ -1405,17 +1408,25 @@
         }
 
         function downloadResults() {
-            const results = `
+            let results = `
 MCQify Quiz Results
 ====================
 Score: ${currentScore}/${totalQuestions}
 Percentage: ${Math.round((currentScore / totalQuestions) * 100)}%
 Date: ${new Date().toLocaleDateString()}
 
-Great work! Keep learning with MCQify.
-            `.trim();
+Here are the questions from your quiz:
+`;
+            currentQuizData.forEach((mcq, index) => {
+                results += `
+--------------------
+Q${index + 1}: ${mcq.question}
+Options: ${mcq.options.join(', ')}
+Correct Answer: ${mcq.correct_answer}
+`;
+            });
 
-            const blob = new Blob([results], { type: 'text/plain' });
+            const blob = new Blob([results.trim()], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1425,6 +1436,12 @@ Great work! Keep learning with MCQify.
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+        
+        // Make global so buttons can access them
+        window.resetQuiz = resetQuiz;
+        window.shareResults = shareResults;
+        window.downloadResults = downloadResults;
+
     </script>
 </body>
 </html>
