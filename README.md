@@ -1,10 +1,10 @@
-# ✨ MCQify: AI-Powered Quiz Generator
-
 <div align="center">
+
+# ✨ MCQify: AI-Powered Quiz Generator
 
 **Transform any PDF into an interactive quiz in seconds** 🚀
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://mcqify.onrender.com)
+[![Live Link](https://img.shields.io/badge/demo-live-brightgreen)](https://mcqifyy.vercel.app/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Google Gemini](https://img.shields.io/badge/Gemini-8E75B2?logo=google&logoColor=white)](https://ai.google.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -197,24 +197,7 @@ Vanilla JS   # Fast, dependency-free interactivity
 - System tracks answers and calculates final score
 - User can download results or share their achievement
 
-### JSON Response Structure
 
-```json
-{
-  "mcqs": [
-    {
-      "question": "What is the main topic of this document?",
-      "options": [
-        "Option A",
-        "Option B", 
-        "Option C",
-        "Option D"
-      ],
-      "correct_answer": "Option B"
-    }
-  ]
-}
-```
 
 ---
 
@@ -279,76 +262,6 @@ python -m http.server 8080
 # Using Node.js
 npx serve .
 ```
-
----
-
-## 📖 API Reference
-
-### Health Check
-```http
-GET /ping
-```
-
-**Response:**
-```json
-{
-  "message": "pong"
-}
-```
-
----
-
-### Generate MCQs
-```http
-POST /generate_mcq
-```
-
-**Request:**
-- Content-Type: `multipart/form-data`
-- Body:
-  - `file`: PDF file (required)
-  - `num_questions`: Integer (required, e.g., 5, 10, 20)
-
-**Success Response (200):**
-```json
-{
-  "mcqs": [
-    {
-      "question": "What is the capital of France?",
-      "options": ["Berlin", "Madrid", "Paris", "Rome"],
-      "correct_answer": "Paris"
-    },
-    {
-      "question": "Which planet is known as the Red Planet?",
-      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
-      "correct_answer": "Mars"
-    }
-  ]
-}
-```
-
-**Error Responses:**
-- `400 Bad Request`: Invalid file type or no text extracted
-- `500 Internal Server Error`: AI generation failed
-
----
-
-## 🎨 Customization
-
-### Changing Question Count Options
-Edit the frontend JavaScript to modify available options:
-```javascript
-const questionCounts = [5, 10, 15, 20, 25, 30];
-```
-
-### Styling
-All styles use Tailwind CSS utility classes. Customize colors, spacing, and animations in `index.html`.
-
-### AI Prompt Engineering
-Modify the Gemini prompt in `main.py` to adjust question difficulty, format, or style.
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! Here's how you can help:
@@ -367,28 +280,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
-
-- **Google Gemini** for providing powerful AI capabilities
-- **FastAPI** for the excellent web framework
-- **Tailwind CSS** for beautiful, responsive design
-- **Render** for reliable hosting
-
----
-
 ## 📬 Contact
 
 Have questions or suggestions? Feel free to reach out!
 
-- **GitHub**: [@your-username](https://github.com/your-username)
-- **Email**: your.email@example.com
-- **Twitter**: [@your-handle](https://twitter.com/your-handle)
+- **GitHub**: [Sonal](https://github.com/sonall99)
+- **Email**: singhsonals999@gmail.com
 
 ---
 
 <div align="center">
-
-**Made with ❤️ and ☕**
 
 If you found this project helpful, please consider giving it a ⭐!
 
