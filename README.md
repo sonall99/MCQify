@@ -78,28 +78,143 @@ Vanilla JS   # Fast, dependency-free interactivity
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
-```mermaid
-graph LR
-    A[User] -->|Uploads PDF| B[Frontend]
-    B -->|POST Request| C[FastAPI Backend]
-    C -->|Extract Text| D[PyPDF2]
-    D -->|Text Content| C
-    C -->|Generate MCQs| E[Google Gemini API]
-    E -->|JSON Response| C
-    C -->|Quiz Data| B
-    B -->|Interactive Quiz| A
+### Visual Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                          👤 USER                                 │
+│                     (Web Browser)                                │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 │ 1. Upload PDF + Select Question Count
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    🎨 FRONTEND                                   │
+│              (HTML + Tailwind CSS + JavaScript)                  │
+│                                                                   │
+│  • File upload interface (drag-and-drop)                         │
+│  • Question count selector                                       │
+│  • Interactive quiz renderer                                     │
+│  • Real-time answer validation                                   │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 │ 2. POST /generate_mcq
+                 │    (FormData: file, num_questions)
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   ⚡ FASTAPI BACKEND                             │
+│                  (Python + FastAPI)                              │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────┐           │
+│  │  Endpoint: /generate_mcq                         │           │
+│  │  • Receives PDF file                             │           │
+│  │  • Validates file type                           │           │
+│  │  • Extracts text content                         │           │
+│  └──────────────┬───────────────────────────────────┘           │
+│                 │                                                 │
+│                 │ 3. Extract text from PDF                       │
+│                 ▼                                                 │
+│  ┌──────────────────────────────────────────────────┐           │
+│  │           📄 PyPDF2 Module                       │           │
+│  │  • Reads PDF pages                               │           │
+│  │  • Extracts all text content                     │           │
+│  │  • Returns plain text string                     │           │
+│  └──────────────┬───────────────────────────────────┘           │
+└─────────────────┼───────────────────────────────────────────────┘
+                  │
+                  │ 4. Send extracted text + prompt
+                  ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              🤖 GOOGLE GEMINI API                                │
+│                 (gemini-pro model)                               │
+│                                                                   │
+│  • Analyzes document content                                     │
+│  • Generates contextual questions                                │
+│  • Creates multiple choice options                               │
+│  • Identifies correct answers                                    │
+│  • Returns structured JSON                                       │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 │ 5. Return JSON response
+                 │    {"mcqs": [...]}
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   ⚡ FASTAPI BACKEND                             │
+│                                                                   │
+│  • Validates JSON structure                                      │
+│  • Formats response                                              │
+│  • Sends back to frontend                                        │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 │ 6. Receive quiz data
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    🎨 FRONTEND                                   │
+│                                                                   │
+│  • Parse JSON response                                           │
+│  • Dynamically build quiz UI                                     │
+│  • Display questions one by one                                  │
+│  • Track user answers                                            │
+│  • Show instant feedback (✓/✗)                                   │
+│  • Calculate final score                                         │
+│  • Offer download & share options                                │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 │ 7. Interactive quiz experience
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                          👤 USER                                 │
+│                                                                   │
+│  • Answers questions                                             │
+│  • Sees results in real-time                                     │
+│  • Downloads/shares final score                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Flow:**
-1. User uploads PDF and selects question count
-2. Frontend sends file to FastAPI backend via `fetch`
-3. Backend extracts text using PyPDF2
-4. Text is sent to Google Gemini with structured prompt
-5. Gemini returns clean JSON with questions, options, and answers
-6. Backend forwards JSON to frontend
-7. Frontend dynamically builds interactive quiz
+### Data Flow Breakdown
+
+**Step 1-2: Upload Phase**
+- User selects PDF file and desired question count
+- Frontend creates FormData object with file and parameters
+- Sends POST request to backend API
+
+**Step 3-4: Processing Phase**
+- FastAPI receives and validates the PDF file
+- PyPDF2 extracts all text content from the PDF
+- Backend constructs a prompt with the extracted text
+- Sends prompt to Google Gemini API
+
+**Step 5-6: Generation Phase**
+- Gemini analyzes the content and generates questions
+- Returns structured JSON with questions, options, and answers
+- Backend validates and forwards the response
+
+**Step 7: Interaction Phase**
+- Frontend dynamically renders the quiz interface
+- User interacts with questions and receives instant feedback
+- System tracks answers and calculates final score
+- User can download results or share their achievement
+
+### JSON Response Structure
+
+```json
+{
+  "mcqs": [
+    {
+      "question": "What is the main topic of this document?",
+      "options": [
+        "Option A",
+        "Option B", 
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer": "Option B"
+    }
+  ]
+}
+```
 
 ---
 
