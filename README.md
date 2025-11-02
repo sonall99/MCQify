@@ -9,7 +9,7 @@
 [![Google Gemini](https://img.shields.io/badge/Gemini-8E75B2?logo=google&logoColor=white)](https://ai.google.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](https://mcqify.onrender.com) • [Features](#-features) • [Getting Started](#-getting-started) • [API Docs](#-api-reference)
+[Live Demo](https://mcqifyy.vercel.app/) • [Features](#-features) • [Getting Started](#-getting-started) • [API Docs](#-api-reference)
 
 </div>
 
